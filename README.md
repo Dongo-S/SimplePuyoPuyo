@@ -10,7 +10,8 @@ Down Arrow or S: Rotate counter clockwise
 Spacebar: move faster
 
 
-
+# Dependencies 
+It uses <a href="http://dotween.demigiant.com/">Dotween</a>
 
 
 
