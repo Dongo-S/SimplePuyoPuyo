@@ -9,7 +9,7 @@ public class PuyoPair
 {
     PuyoObject[] puyos = new PuyoObject[2];
 
-
+    public float puyosInitialSpeed;
 
     public Vector2 Left
     {
@@ -163,11 +163,32 @@ public class PuyoPair
     }
 
 
-    public void Init(PuyoObject puyo1, PuyoObject puyo2)
+    public void Init(PuyoObject puyo1, PuyoObject puyo2, float puyoSpeed)
     {
+
         puyos[0] = puyo1;
         puyos[1] = puyo2;
+        puyosInitialSpeed = puyoSpeed;
+        puyos[0].movement.speed = puyosInitialSpeed;
+        puyos[1].movement.speed = puyosInitialSpeed;
     }
+
+    public void IncreaseSpeed()
+    {
+        if (Puyo1 != null)
+            Puyo1.movement.speed *= 2;
+        if (Puyo2 != null)
+            Puyo2.movement.speed *= 2;
+    }
+
+    public void DecreaseSpeed()
+    {
+        if (Puyo1 != null)
+            Puyo1.movement.speed = puyosInitialSpeed;
+        if (Puyo2 != null)
+            Puyo2.movement.speed = puyosInitialSpeed;
+    }
+
 
     public void Move(float direction)
     {
