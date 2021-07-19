@@ -1,3 +1,4 @@
+using DS.Movements;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -129,6 +130,39 @@ public class PuyoPair
         }
     }
 
+
+    public Directions DirectionOfPuyo2()
+    {
+
+
+        if (Puyo2 == null || Puyo1 == null)
+            return Directions.None;
+
+        Directions dir = Directions.None;
+
+        //The form is vertical
+        if (Mathf.Abs(Puyo1.transform.position.y - Puyo2.transform.position.y) >= 0.2f)
+        {
+            if (Puyo1.transform.position.y < Puyo2.transform.position.y)
+                dir = Directions.Up;
+            else
+                dir = Directions.Down;
+        }
+        else
+        {
+            if (Puyo2.transform.position.x > Puyo1.transform.position.x)
+            {
+                dir = Directions.Right;
+            }
+            else
+                dir = Directions.Left;
+        }
+
+        return dir;
+
+    }
+
+
     public void Init(PuyoObject puyo1, PuyoObject puyo2)
     {
         puyos[0] = puyo1;
@@ -230,5 +264,18 @@ public class PuyoPair
             if (puyos[1] != null)
                 puyos[1].movement.StartMoving();
         }
+    }
+
+    public void Rotate(Directions finalDir)
+    {
+        Vector2 newPos;
+        newPos.x = Puyo1.transform.position.x +
+            MoveGameObject.Direction(finalDir).x;
+
+        newPos.y = Puyo1.transform.position.y +
+           MoveGameObject.Direction(finalDir).y;
+
+        Puyo2.transform.position = newPos;
+
     }
 }

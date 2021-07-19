@@ -64,7 +64,8 @@ namespace DS.Movements
     [System.Serializable]
     public enum Directions
     {
-        Up,
+        None,
+        Up = 1,
         Down,
         Right,
         Left,
