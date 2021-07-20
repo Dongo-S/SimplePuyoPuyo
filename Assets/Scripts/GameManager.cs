@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
     public GameObject gameOverPanel;
     public TextMeshProUGUI gameOverScoreLabel;
     public TextMeshProUGUI gamePlayScoreLabel;
+    public TextMeshProUGUI comboMultiplierLabel;
     public Transform puyosSpawnerPoint;
     public UnityEngine.UI.Button pauseButton;
 
@@ -29,12 +30,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] bool gameOver = false;
     [SerializeField] bool inCombo = false;
     [SerializeField] int score = 0;
-    [SerializeField] int comboMultiplier = 1;
+    [SerializeField] int _comboMultiplier = 1;
     [SerializeField] float puyosSpeed = 4;
 
     PuyoPair puyoPair;
 
-    List<PuyoObject> puyosMovingInCombo = new List<PuyoObject>();
+    //List<PuyoObject> puyosMovingInCombo = new List<PuyoObject>();
+    [SerializeField] List<PuyoObject> fallingPuyos = new List<PuyoObject>();
+    [SerializeField] List<PuyoObject> prevMovingPuyos = new List<PuyoObject>();
 
     Camera mainCamera;
     // Start is called before the first frame update
@@ -68,8 +71,6 @@ public class GameManager : MonoBehaviour
 
             if (inPause)
                 return;
-
-
 
 
             if (Input.GetKeyDown(KeyCode.Escape))
@@ -116,9 +117,14 @@ public class GameManager : MonoBehaviour
         if (gameOver)
             return;
 
-        comboMultiplier = 1;
+        if (puyoPair.Puyo1 != null && puyoPair.Puyo2 != null)
+            return;
+
+        SetComboMultiplier(1);
         inCombo = false;
 
+
+        prevMovingPuyos.Clear();
 
         GameObject g1 = puyosPool.GetObject();
         GameObject g2 = puyosPool.GetObject();
@@ -154,6 +160,8 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        if (!fallingPuyos.Contains(puyo))
+            fallingPuyos.Add(puyo);
 
         //Debug.Log($"Position {puyo.transform.position} Name: {puyo.name}");
         Vector2Int position = Vector2Int.zero;
@@ -168,34 +176,66 @@ public class GameManager : MonoBehaviour
             return;
 
 
-        ////
-        //if (position.y == 0)
-        //{
-        //    if (puyoPair.IsBelow(puyo, out PuyoObject otherPuyo))
-        //    {
-        //        Debug.Log("Is Below");
-        //        Vector2Int position2 = Vector2Int.zero;
-        //        position2.x = (int)otherPuyo.transform.position.x;
-        //        position2.y = (int)otherPuyo.transform.position.y;
-        //        StopPuyo(otherPuyo, position2);
-
-        //    }
-
-        //    StopPuyo(puyo, position);
-
-        //}
-
-        //if (inCombo)
-        //{
-
-        //}
-
         if (!ValidateMovement(position, Directions.Down))
         {
             StopPuyo(puyo, position);
         }
 
     }
+
+
+    void CheckLinksPrevPuyos()
+    {
+        if (prevMovingPuyos.Count > 0)
+            for (int i = prevMovingPuyos.Count - 1; i >= 0; i--)
+            {
+                if (!prevMovingPuyos[i].gameObject.activeInHierarchy)
+                {
+                    prevMovingPuyos.RemoveAt(i);
+                }
+                else
+                {
+
+                    Vector2Int pos = Vector2Int.zero;
+                    pos.x = (int)prevMovingPuyos[i].transform.position.x;
+                    pos.y = (int)prevMovingPuyos[i].transform.position.y;
+                    //Check link
+                    CheckLink(pos, prevMovingPuyos[i].colorIndex);
+                }
+
+            }
+
+        Debug.Log($"PRev size: {prevMovingPuyos.Count}");
+
+
+        for (int i = prevMovingPuyos.Count - 1; i >= 0; i--)
+        {
+            if (!prevMovingPuyos[i].gameObject.activeInHierarchy || !prevMovingPuyos[i].movement.IsMoving())
+            {
+                prevMovingPuyos.RemoveAt(i);
+            }
+
+            //if (!prevMovingPuyos[i].gameObject.activeInHierarchy)
+            //{
+            //    prevMovingPuyos.RemoveAt(i);
+            //}
+            else
+            {
+
+                Vector2Int pos = Vector2Int.zero;
+                pos.x = (int)prevMovingPuyos[i].transform.position.x;
+                pos.y = (int)prevMovingPuyos[i].transform.position.y;
+                //Check link
+                CheckLink(pos, prevMovingPuyos[i].colorIndex);
+            }
+        }
+
+        if (prevMovingPuyos.Count == 1 || prevMovingPuyos.Count == 0 && fallingPuyos.Count == 0)
+        {
+            InstantiatePuyoPair();
+        }
+    }
+
 
     public void StopPuyo(PuyoObject puyo, Vector2Int position)
     {
@@ -206,25 +246,39 @@ public class GameManager : MonoBehaviour
 
 
 
+
+        fallingPuyos.Remove(puyo);
+
+
         boardArrayPuyos[position.x, position.y] = puyo;
         puyo.transform.position = (Vector2)position;
 
+        if (!prevMovingPuyos.Contains(puyo))
+        {
+            prevMovingPuyos.Add(puyo);
+        }
+
+
+        if (fallingPuyos.Count == 0)
+        {
+            CheckLinksPrevPuyos();
+        }
         //Check link
-        CheckLink(position, puyo.colorIndex);
+        //CheckLink(position, puyo.colorIndex);
 
-        if (puyosMovingInCombo.Contains(puyo))
-        {
-            //CheckLink(position, puyo.colorIndex);
+        //if (puyosMovingInCombo.Contains(puyo))
+        //{
+        //    //CheckLink(position, puyo.colorIndex);
 
-            puyosMovingInCombo.Remove(puyo);
-        }
+        //    puyosMovingInCombo.Remove(puyo);
+        //}
 
-        if (inCombo && puyosMovingInCombo.Count == 0)
-        {
-            CheckLink(position, puyo.colorIndex);
-            //comboMultiplier = 1;
-            //inCombo = false;
-        }
+        //if (inCombo && puyosMovingInCombo.Count == 0)
+        //{
+        //    //CheckLink(position, puyo.colorIndex);
+        //    //comboMultiplier = 1;
+        //    //inCombo = false;
+        //}
 
         // Debug.Log($"Stop Position {puyo.transform.position} Name: {puyo.name}");
 
@@ -234,13 +288,11 @@ public class GameManager : MonoBehaviour
             //CheckLink(position, puyo.colorIndex);
 
             if (!inCombo)
-            { 
+            {
                 InstantiatePuyoPair();
             }
         }
     }
-
-
 
 
     void CheckLink(Vector2Int pos, int colorIndex)
@@ -253,8 +305,8 @@ public class GameManager : MonoBehaviour
         int lenghtY = boardArrayPuyos.GetLength(1) - 1;
 
         //add the newly stopped puyo
-        PuyoObject tempPuyo = boardArrayPuyos[pos.x, pos.y];
-        puyosLink.Add(tempPuyo);
+        // PuyoObject tempPuyo = boardArrayPuyos[pos.x, pos.y];
+        //puyosLink.Add(tempPuyo);
 
         CheckPuyoLink(pos, colorIndex, ref puyosLink);
 
@@ -264,16 +316,21 @@ public class GameManager : MonoBehaviour
         {
             if (inCombo)
             {
-                comboMultiplier++;
+
+                SetComboMultiplier(_comboMultiplier + 1);
             }
 
 
             for (int i = 0; i < puyosLink.Count; i++)
             {
                 inCombo = true;
+                // Debug.Log("PuyosLink count: " + puyosLink.Count);
+                //Debug.Log($"Puyo position {(int)puyosLink[i].transform.position.x }, {(int)puyosLink[i].transform.position.y}");
                 boardArrayPuyos[(int)puyosLink[i].transform.position.x, (int)puyosLink[i].transform.position.y] = null;
+
                 puyosLink[i].gameObject.SetActive(false);
-                AddScore(1 * comboMultiplier);
+                AddScore(1 * _comboMultiplier);
+
                 //Check for puyosAbove
 
                 for (int j = (int)puyosLink[i].transform.position.y + 1; j < lenghtY; j++)
@@ -281,21 +338,34 @@ public class GameManager : MonoBehaviour
 
                     if (boardArrayPuyos[(int)puyosLink[i].transform.position.x, j] == null)
                         continue;
+
                     if (puyosLink.Contains(boardArrayPuyos[(int)puyosLink[i].transform.position.x, j]))
+                    {
+                        prevMovingPuyos.Remove(boardArrayPuyos[(int)puyosLink[i].transform.position.x, j]);
                         continue;
+                    }
 
                     PuyoObject puyoMoving = boardArrayPuyos[(int)puyosLink[i].transform.position.x, j];
                     boardArrayPuyos[(int)puyosLink[i].transform.position.x, j] = null;
                     puyoMoving.movement.StartMoving();
-                    puyosMovingInCombo.Add(puyoMoving);
+
+                    prevMovingPuyos.Remove(puyoMoving);
+
+                    if (prevMovingPuyos.Count == 0)
+                    {
+                        InstantiatePuyoPair();
+                    }
+
+                    //puyosMovingInCombo.Add(puyoMoving);
                 }
             }
         }
 
-        if (puyosMovingInCombo.Count == 0)
-        {
-            inCombo = false;
-        }
+        //if (puyosMovingInCombo.Count == 0)
+        //{
+        //    inCombo = false;
+        //    SetComboMultiplier(1);
+        //}
 
         for (int i = 0; i < lenghtX; i++)
         {
@@ -310,7 +380,11 @@ public class GameManager : MonoBehaviour
 
     }
 
-
+    public void SetComboMultiplier(int comboMultiplier)
+    {
+        _comboMultiplier = comboMultiplier;
+        comboMultiplierLabel.text = $"Combo Multi x{_comboMultiplier}";
+    }
 
     void CheckPuyoLink(Vector2Int newPos, int colorIndex, ref List<PuyoObject> puyosLinkList)
     {
@@ -556,7 +630,7 @@ public class GameManager : MonoBehaviour
         score = 0;
         AddScore(0);
         inCombo = false;
-        comboMultiplier = 1;
+        SetComboMultiplier(1);
 
         puyoPair = new PuyoPair();
         // boardArray = new int[8, 16];

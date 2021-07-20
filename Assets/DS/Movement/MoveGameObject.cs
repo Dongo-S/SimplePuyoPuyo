@@ -10,11 +10,11 @@ namespace DS.Movements
 
         public float speed = 150f;
 
-        bool moving;
+        [SerializeField] bool moving;
         [SerializeField] Directions direction;
         Vector3 dir;
         [SerializeField] UnityEvent onMove;
-
+       
         public void StartMoving()
         {
             moving = true;
@@ -52,7 +52,11 @@ namespace DS.Movements
                 onMove.Invoke();
             }
         }
-
+        
+        public bool IsMoving()
+        {
+            return moving;
+        }
 
         private void OnDisable()
         {

@@ -256,10 +256,12 @@ public class PuyoPair
 
         if (puyos[0] == puyo)
         {
+            puyos[0].movement.speed = puyosInitialSpeed;
             puyos[0] = null;
         }
         else if (puyos[1] == puyo)
         {
+            puyos[1].movement.speed = puyosInitialSpeed;
             puyos[1] = null;
         }
 
