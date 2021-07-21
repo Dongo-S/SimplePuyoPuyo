@@ -7,7 +7,7 @@ using UnityEngine;
 [System.Serializable]
 public class PuyoPair
 {
-    PuyoObject[] puyos = new PuyoObject[2];
+    [SerializeField]PuyoObject[] puyos = new PuyoObject[2];
 
     public float puyosInitialSpeed;
 
@@ -276,9 +276,15 @@ public class PuyoPair
         if (value)
         {
             if (puyos[0] != null)
+            {
+                puyos[0].movement.speed = puyosInitialSpeed;
                 puyos[0].movement.StopMoving();
+            }
             if (puyos[1] != null)
+            {
+                puyos[1].movement.speed = puyosInitialSpeed;
                 puyos[1].movement.StopMoving();
+            }
         }
         else
         {
