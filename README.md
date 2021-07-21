@@ -4,9 +4,13 @@ A simple puyo puyo game made in Unity
 
 ## Controls
 Left Arrow or A: Move left.
+
 Right Arrow or D: Move right.
+
 Up Arrow or W: Rotate clockwise.
+
 Down Arrow or S: Rotate counter clockwise
+
 Spacebar: move faster
 
 
